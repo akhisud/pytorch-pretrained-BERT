@@ -120,17 +120,23 @@ class OpenAIGPTTokenizer(object):
         tokenizer = cls(resolved_vocab_file, resolved_merges_file, *inputs, **kwargs)
         return tokenizer
 
-    def __init__(self, vocab_file, merges_file, special_tokens=None, max_len=None):
-        try:
-            import ftfy
-            import spacy
-            self.nlp = spacy.load('en', disable=['parser', 'tagger', 'ner', 'textcat'])
-            self.fix_text = ftfy.fix_text
-        except ImportError:
-            logger.warning("ftfy or spacy is not installed using BERT BasicTokenizer instead of SpaCy & ftfy.")
+    def __init__(self, vocab_file, merges_file, special_tokens=None, max_len=None, use_basic_tokenizer=True):
+        if use_basic_tokenizer:
+            logger.warning("using BERT BasicTokenizer instead of SpaCy & ftfy.")
             self.nlp = BasicTokenizer(do_lower_case=True,
                                       never_split=special_tokens if special_tokens is not None else [])
             self.fix_text = None
+        else:
+            try:
+                import ftfy
+                import spacy
+                self.nlp = spacy.load('en', disable=['parser', 'tagger', 'ner', 'textcat'])
+                self.fix_text = ftfy.fix_text
+            except ImportError:
+                logger.warning("ftfy or spacy is not installed using BERT BasicTokenizer instead of SpaCy & ftfy.")
+                self.nlp = BasicTokenizer(do_lower_case=True,
+                                          never_split=special_tokens if special_tokens is not None else [])
+                self.fix_text = None
 
         self.max_len = max_len if max_len is not None else int(1e12)
         self.encoder = json.load(open(vocab_file, encoding="utf-8"))
@@ -161,6 +167,8 @@ class OpenAIGPTTokenizer(object):
         logger.info("Special tokens {}".format(self.special_tokens))
 
     def bpe(self, token):
+        if token in self.special_tokens:
+            return token
         word = tuple(token[:-1]) + (token[-1] + '</w>',)
         if token in self.cache:
             return self.cache[token]
