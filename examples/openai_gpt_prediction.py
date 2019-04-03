@@ -37,27 +37,27 @@ def prediction(ref_text):
 
     return tokenizer.decode(decoded_sentence)
 
-# DATA = '/home/ubuntu/data/amazon'
-# POS_TEST_FILE_PATH = os.path.join(DATA, 'processed.reference.inputs.from.1')
-# NEG_TEST_FILE_PATH = os.path.join(DATA,'processed.reference.inputs.from.0')
-# POS_TEST_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.reference.out.from.1')
-# NEG_TEST_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.reference.out.from.0')
-
-# POS_REF_FILE_PATH = os.path.join(DATA, 'processed.sentiment.test.inputs.1')
-# NEG_REF_FILE_PATH = os.path.join(DATA,'processed.sentiment.test.inputs.0')
-# POS_REF_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.test.out.1')
-# NEG_REF_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.test.out.0')
-
-DATA = '/home/ubuntu/data/yelp'
+DATA = '/home/ubuntu/data/amazon'
 POS_TEST_FILE_PATH = os.path.join(DATA, 'processed.reference.inputs.from.1')
 NEG_TEST_FILE_PATH = os.path.join(DATA,'processed.reference.inputs.from.0')
-POS_TEST_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.reference.out.from.1')
-NEG_TEST_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.reference.out.from.0')
+POS_TEST_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.reference.out.from.1')
+NEG_TEST_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.reference.out.from.0')
 
 POS_REF_FILE_PATH = os.path.join(DATA, 'processed.sentiment.test.inputs.1')
 NEG_REF_FILE_PATH = os.path.join(DATA,'processed.sentiment.test.inputs.0')
-POS_REF_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.test.out.1')
-NEG_REF_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.test.out.0')
+POS_REF_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.test.out.1')
+NEG_REF_FILE_OUT_PATH = os.path.join('../runs/amazon_1_plus_3_epoch/sentiment.test.out.0')
+
+# DATA = '/home/ubuntu/data/yelp'
+# POS_TEST_FILE_PATH = os.path.join(DATA, 'processed.reference.inputs.from.1')
+# NEG_TEST_FILE_PATH = os.path.join(DATA,'processed.reference.inputs.from.0')
+# POS_TEST_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.reference.out.from.1')
+# NEG_TEST_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.reference.out.from.0')
+#
+# POS_REF_FILE_PATH = os.path.join(DATA, 'processed.sentiment.test.inputs.1')
+# NEG_REF_FILE_PATH = os.path.join(DATA,'processed.sentiment.test.inputs.0')
+# POS_REF_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.test.out.1')
+# NEG_REF_FILE_OUT_PATH = os.path.join('../runs/yelp_3_epoch/sentiment.test.out.0')
 
 with open(POS_TEST_FILE_PATH, 'r') as f:
     sents_pos_test = f.readlines()

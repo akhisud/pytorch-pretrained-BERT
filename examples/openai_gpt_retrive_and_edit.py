@@ -112,12 +112,13 @@ def main():
     model = OpenAIGPTLMHeadModel.from_pretrained(args.model_name, num_special_tokens=len(special_tokens))
     if args.load_trained:
         print('Loading trained model..')
-        path = os.path.join(os.getcwd(), '../runs/amazon_1_epoch/pytorch_model.bin')
+        path = os.path.join(os.getcwd(), '../runs/dummy/pytorch_model.bin')
         model_state_dict = torch.load(path)
         model.load_state_dict(model_state_dict)
         print('Finished loading.')
     model.to(device)
-
+    if n_gpu > 1:
+        model = torch.nn.DataParallel(model)
 
     # Load and encode dataset
     def tokenize_and_encode(file_path):
@@ -145,8 +146,10 @@ def main():
     time.sleep(2)
     # Compute the mex input length for the Transformer
     input_length = max(max(len(t) for t in train_dataset), max(len(q) for q in eval_dataset))
-    input_length = min(input_length, model.config.n_positions)  # Max size of input for the pre-trained model
-
+    if n_gpu > 1:
+        input_length = min(input_length, model.module.config.n_positions)  # Max size of input for the pre-trained model
+    else:
+        input_length = min(input_length, model.config.n_positions)  # Max size of input for the pre-trained model
     def pre_process_dataset(encoded_dataset, input_length, start_token_id):
         """
         This method is to create torch tensor of input ids and lm labels
@@ -212,6 +215,7 @@ def main():
         nb_tr_steps, tr_loss, exp_average_loss = 0, 0, None
         ep_count = 0
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
+            start = time.time()
             model.train()
             tr_loss = 0
             nb_tr_steps = 0
@@ -220,10 +224,19 @@ def main():
                 batch = tuple(t.to(device) for t in batch)
                 input_ids, lm_labels = batch
                 loss = model(input_ids, lm_labels=lm_labels)
-                loss.backward()
+                if n_gpu >1 :
+                    loss.mean().backward()
+                else:
+                    loss.backward()
                 optimizer.step()
-                tr_loss += loss.item()
-                exp_average_loss = loss.item() if exp_average_loss is None else 0.7 * exp_average_loss + 0.3 * loss.item()
+                optimizer.zero_grad()
+                tmp_loss = None
+                if n_gpu >1 :
+                    tmp_loss = loss.mean().item()
+                else:
+                    tmp_loss = loss.item()
+                tr_loss+= tmp_loss
+                exp_average_loss = tmp_loss if exp_average_loss is None else 0.7 * exp_average_loss + 0.3 * tmp_loss
                 nb_tr_steps += 1
                 tqdm_bar.desc = "Training loss: {:.2e} lr: {:.2e}".format(exp_average_loss, optimizer.get_lr()[0])
 
@@ -231,7 +244,7 @@ def main():
             print("Saving model..")
             model_to_save = model.module if hasattr(model, 'module') else model  # Only save the model it-self
             output_model_file = os.path.join(args.output_dir, "pytorch_model_{}.bin".format(str(ep_count)))
-            config = model.config
+            config = model.module.config if hasattr(model, 'module') else model.config
             torch.save(model_to_save.state_dict(), output_model_file)
             print("Loading saved model..")
             # Load a trained model that you have fine-tuned
@@ -239,7 +252,8 @@ def main():
             model = OpenAIGPTLMHeadModel(config)
             model.load_state_dict(model_state_dict)
             model.to(device)
-
+            if n_gpu > 1:
+                model = torch.nn.DataParallel(model)
             if args.do_eval:
                 model.eval()
                 eval_loss, eval_accuracy = 0, 0
@@ -266,6 +280,7 @@ def main():
                         logger.info("  %s = %s", key, str(result[key]))
                         writer.write("%s = %s\n" % (key, str(result[key])))
             ep_count+=1
+            print('TIME TAKEN: ', time.time()-start)
 
 
 
